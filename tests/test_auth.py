@@ -44,14 +44,14 @@ async def test_login_unknown_email(client):
 
 @pytest.mark.asyncio
 async def test_protected_endpoint_without_token(client):
-    """Calling a protected endpoint without JWT returns 401."""
+    """Calling a protected endpoint without JWT returns 403 (FastAPI default)."""
     response = await client.get("/stations")
-    assert response.status_code == 401
+    assert response.status_code == 403
 
 
 @pytest.mark.asyncio
 async def test_protected_endpoint_with_invalid_token(client):
-    """Calling a protected endpoint with a fake token returns 401."""
+    """Calling a protected endpoint with an invalid token returns 401."""
     response = await client.get(
         "/stations",
         headers={"Authorization": "Bearer fake.token.here"},

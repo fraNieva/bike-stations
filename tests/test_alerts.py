@@ -91,7 +91,7 @@ async def test_resolve_nonexistent_alert(client, auth_headers):
 
 @pytest.mark.asyncio
 async def test_alerts_require_authentication(client, db):
-    """Alert endpoints return 401 without a valid JWT."""
+    """Endpoints return 403 when no JWT is provided (FastAPI default)."""
     make_alert(db)
     response = await client.get("/alerts")
-    assert response.status_code == 401
+    assert response.status_code == 403

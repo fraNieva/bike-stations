@@ -57,6 +57,6 @@ async def test_get_station_not_found(client, auth_headers):
 
 @pytest.mark.asyncio
 async def test_station_endpoints_require_authentication(client):
-    """Station endpoints return 401 without a valid JWT."""
+    """Endpoints return 403 when no JWT is provided (FastAPI default)."""
     response = await client.get("/stations")
-    assert response.status_code == 401
+    assert response.status_code == 403

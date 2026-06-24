@@ -70,6 +70,6 @@ async def test_deactivated_user_cannot_login(client, test_user, db):
 
 @pytest.mark.asyncio
 async def test_user_endpoints_require_authentication(client):
-    """User admin endpoints return 401 without a valid JWT."""
+    """Endpoints return 403 when no JWT is provided (FastAPI default)."""
     response = await client.get("/admin/users")
-    assert response.status_code == 401
+    assert response.status_code == 403

@@ -19,9 +19,9 @@ from datetime import datetime, timezone
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
-from passlib.context import CryptContext
+import bcrypt
 
-os.environ["DATABASE_URL"] = "postgresql://postgres:postgres@localhost:5432/bike_stations_test"
+os.environ["DATABASE_URL"] = "postgresql://postgres:postgres@db:5432/bike_stations_test"
 os.environ["SECRET_KEY"] = "test-secret-key-not-for-production"
 
 from app.main import app
@@ -32,17 +32,16 @@ from app import models
 # Database setup
 # ---------------------------------------------------------------------------
 
-TEST_DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/bike_stations_test"
+TEST_DATABASE_URL = "postgresql://postgres:postgres@db:5432/bike_stations_test"
 
 engine = create_engine(TEST_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def create_test_database():
     """Create the test database if it does not exist."""
     default_engine = create_engine(
-        "postgresql://postgres:postgres@localhost:5432/postgres",
+        "postgresql://postgres:postgres@db:5432/postgres",
         isolation_level="AUTOCOMMIT",
     )
     with default_engine.connect() as conn:
@@ -57,7 +56,7 @@ def create_test_database():
 def drop_test_database():
     """Drop the test database after the session ends."""
     default_engine = create_engine(
-        "postgresql://postgres:postgres@localhost:5432/postgres",
+        "postgresql://postgres:postgres@db:5432/postgres",
         isolation_level="AUTOCOMMIT",
     )
     with default_engine.connect() as conn:
@@ -138,7 +137,7 @@ def test_user(db):
     """
     user = models.User(
         email="mariano@bicing.com",
-        password_hash=pwd_context.hash("securepassword123"),
+        password_hash=bcrypt.hashpw("securepassword123".encode("utf-8"), bcrypt.gensalt()).decode("utf-8"),
         is_active=True,
     )
     db.add(user)
@@ -159,7 +158,7 @@ def test_device(db):
     raw_api_key = "test-api-key-station-01"
     device = models.Device(
         station_id="BCN-042",
-        api_key_hash=pwd_context.hash(raw_api_key),
+        api_key_hash=bcrypt.hashpw(raw_api_key.encode("utf-8"), bcrypt.gensalt()).decode("utf-8"),
         is_active=True,
     )
     db.add(device)

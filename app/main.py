@@ -7,14 +7,19 @@ is running correctly.
 """
 
 from fastapi import FastAPI
-from app.database import engine
-from app import models
+from app.routers import auth, ingest, alerts, stations, admin
 
 app = FastAPI(
     title="Bike Stations Monitoring API",
     description="Receives telemetry from Arduino devices and exposes data to the dashboard.",
     version="0.1.0",
 )
+
+app.include_router(auth.router)
+app.include_router(ingest.router)
+app.include_router(alerts.router)
+app.include_router(stations.router)
+app.include_router(admin.router)
 
 
 @app.get("/health", tags=["system"])

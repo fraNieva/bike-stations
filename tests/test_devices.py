@@ -73,6 +73,6 @@ async def test_activate_device(client, auth_headers, test_device, db):
 
 @pytest.mark.asyncio
 async def test_device_endpoints_require_authentication(client):
-    """Device admin endpoints return 401 without a valid JWT."""
+    """Endpoints return 403 when no JWT is provided (FastAPI default)."""
     response = await client.get("/admin/devices")
-    assert response.status_code == 401
+    assert response.status_code == 403

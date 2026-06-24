@@ -34,9 +34,9 @@ async def test_ingest_success(client, test_device, device_headers):
 
 @pytest.mark.asyncio
 async def test_ingest_missing_api_key(client, test_device):
-    """Request without X-API-Key header returns 401."""
+    """Request without X-API-Key header returns 403 (FastAPI default for missing header)."""
     response = await client.post("/ingest", json=VALID_PAYLOAD)
-    assert response.status_code == 401
+    assert response.status_code == 403
 
 
 @pytest.mark.asyncio

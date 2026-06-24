@@ -104,6 +104,7 @@ class IngestResponse(BaseModel):
     """Confirmation returned to the device after a successful ingest."""
     id: int
     station_id: str
+    is_charging: bool
     received_at: datetime
     alert_created: bool
 
