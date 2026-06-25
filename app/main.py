@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.routers import auth, ingest, alerts, stations, admin
+from app.routers import auth, ingest, alerts, stations, admin, reports
 from app.scheduler import start_scheduler, stop_scheduler
 
 logging.basicConfig(
@@ -40,6 +40,7 @@ app.include_router(ingest.router)
 app.include_router(alerts.router)
 app.include_router(stations.router)
 app.include_router(admin.router)
+app.include_router(reports.router)
 
 
 @app.get("/health", tags=["system"])

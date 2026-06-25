@@ -8,7 +8,7 @@ lets both evolve independently.
 
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from app.models import AlertStatus
 
 
@@ -149,3 +149,38 @@ class AlertResponse(BaseModel):
 class AlertResolve(BaseModel):
     """Payload to mark an alert as resolved."""
     notes: Optional[str] = None
+
+
+# ---------------------------------------------------------------------------
+# Reports
+# ---------------------------------------------------------------------------
+
+class StationAlertSummary(BaseModel):
+    """Per-station metrics within an alerts report."""
+ 
+    station_id: str
+    total: int
+    open: int
+    resolved: int
+    avg_resolution_minutes: Optional[float] = None
+ 
+ 
+class ReportPeriod(BaseModel):
+    """Date range covered by a report."""
+ 
+    from_date: Optional[datetime] = Field(None, alias="from")
+    to_date: Optional[datetime] = Field(None, alias="to")
+ 
+    model_config = ConfigDict(populate_by_name=True)
+ 
+ 
+class AlertsReportResponse(BaseModel):
+    """Response schema for GET /reports/alerts."""
+ 
+    total: int
+    open: int
+    resolved: int
+    avg_resolution_minutes: Optional[float] = None
+    by_station: Optional[list[StationAlertSummary]] = None
+    period: ReportPeriod
+ 
