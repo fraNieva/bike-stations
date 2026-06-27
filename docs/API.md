@@ -304,6 +304,61 @@ Deletes station events older than 7 days. Alerts are never deleted.
 
 ---
 
+## Reports (Dashboard)
+
+### GET /reports/alerts
+
+Returns a historical summary of alerts with optional filters by date range and/or station.
+
+**Auth**: JWT required.
+
+**Query params** (all optional):
+- `?from=2026-01-01` — start date (inclusive)
+- `?to=2026-06-30` — end date (inclusive)
+- `?station_id=BCN-042` — filter by specific station
+
+**Response 200 — no station_id filter**
+```json
+{
+  "total": 42,
+  "open": 3,
+  "resolved": 39,
+  "by_station": [
+    {
+      "station_id": "BCN-042",
+      "total": 8,
+      "open": 1,
+      "resolved": 7,
+      "avg_resolution_minutes": 94
+    }
+  ],
+  "period": {
+    "from": "2026-01-01T00:00:00Z",
+    "to": "2026-06-25T00:00:00Z"
+  }
+}
+```
+
+**Response 200 — with ?station_id filter**
+```json
+{
+  "total": 8,
+  "open": 1,
+  "resolved": 7,
+  "by_station": null,
+  "period": {
+    "from": "2026-01-01T00:00:00Z",
+    "to": "2026-06-25T00:00:00Z"
+  }
+}
+```
+
+`avg_resolution_minutes` — average time between alert creation and resolution for that station. Only resolved alerts are included in this calculation; open alerts are excluded.
+
+`by_station` — only returned when no `station_id` filter is applied. Ordered by `total` descending.
+
+---
+
 ## System
 
 ### GET /health

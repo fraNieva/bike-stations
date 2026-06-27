@@ -25,6 +25,7 @@ generates alerts, and exposes everything to a maintenance dashboard.
 - **Alembic** — migrations (always use Alembic, never `create_all()` in production)
 - **bcrypt** — password and API key hashing (do NOT use passlib — incompatible with current bcrypt version)
 - **python-jose** — JWT tokens
+- **APScheduler 3.10.4** — daily cleanup job (AsyncIOScheduler, runs at 03:00 UTC)
 - **pytest + httpx** — integration tests (run inside Docker: `docker-compose exec app pytest -v`)
 
 ## Key Business Rules
@@ -60,6 +61,7 @@ See [docs/DATA_MODEL.md](docs/DATA_MODEL.md) for full schema.
 - `GET /admin/users` — list users (JWT)
 - `PATCH /admin/users/{id}` — activate/deactivate user (JWT)
 - `POST /admin/cleanup` — delete events older than 7 days (JWT)
+- `GET /reports/alerts` — alert history report with optional filters (JWT)
 - `GET /health` — health check (no auth)
 
 See [docs/API.md](docs/API.md) for full request/response contracts.
@@ -68,15 +70,22 @@ See [docs/API.md](docs/API.md) for full request/response contracts.
 
 1. Make changes to code locally
 2. Run `docker-compose up --build -d` to rebuild
-3. Run `docker-compose exec app pytest -v` to verify all 46 tests pass
+3. Run `docker-compose exec app pytest -v` to verify all 60 tests pass
 4. Commit and push — Railway deploys automatically from GitHub
+
+### Initial setup (first deploy)
+
+Run the seed script to create the first admin user and optionally register the first device:
+
+```bash
+docker-compose exec app python seed.py
+```
+
+The script is fully interactive — no hardcoded values. It is idempotent: running it again skips existing records without failing.
 
 ## What Is Pending
 
-- Notifications (Telegram + email) when alert is created
-- Automatic daily cleanup scheduler (currently manual endpoint)
-- First user seed script (currently requires manual DB insert)
-- Reports endpoint (`GET /reports/alerts`)
+- Notifications (Telegram + email) when alert is created — deferred pending client confirmation on preferred delivery method
 - Dashboard frontend (React/Next.js — separate project)
 
 ## Important Constraints

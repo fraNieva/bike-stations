@@ -28,7 +28,7 @@ Responsibilities:
 - Persist telemetry events to PostgreSQL
 - Run the alert engine after each non-charging event
 - Expose data to the dashboard via JWT-protected endpoints
-- Clean up events older than 7 days
+- Clean up events older than 7 days (manual endpoint + automatic daily scheduler)
 
 ### Layer 3 — Database
 
@@ -80,7 +80,16 @@ avoids the dependency and is more explicit.
 Events inserted in rapid succession (e.g., in tests) can have identical `received_at`
 timestamps due to database clock resolution. The auto-increment `id` is always strictly ordered.
 
-**Why integration tests instead of unit tests?**
+**Why APScheduler instead of a cron service?**
+For a single daily task (event cleanup), APScheduler integrated into the FastAPI lifespan is simpler
+than a separate Railway service. If the container restarts, Railway brings it back up and the scheduler
+starts automatically. The job runs at 03:00 UTC (low-traffic window for Barcelona). The manual
+`POST /admin/cleanup` endpoint remains available for on-demand runs.
+
+**Why a seed script instead of a migration for the first user?**
+The operator's credentials (email, password, station ID, API key) are runtime choices, not deployment
+artifacts. The interactive `seed.py` script is run once after the first deploy. It is idempotent —
+running it again skips existing records without failing. Nothing is hardcoded.
 The most likely failure points are the interactions between endpoint → validation → DB → response.
 Mocking the database would miss these. All 46 tests run against a real PostgreSQL instance.
 
@@ -91,3 +100,5 @@ Mocking the database would miss these. All 46 tests run against a real PostgreSQ
 - **Build**: Railway detects `Dockerfile` and builds the image
 - **Start**: `alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000`
 - **Database**: PostgreSQL service provisioned by Railway, connected via `DATABASE_URL` env var
+- **Scheduler**: APScheduler starts automatically inside the FastAPI lifespan — no separate process needed
+- **First deploy**: run `docker-compose exec app python seed.py` once to create the first admin user

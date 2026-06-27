@@ -48,12 +48,14 @@ the maintenance team when a station stops charging.
 - Each alert has a status: `open` or `resolved`
 - Alerts are resolved manually by the maintenance operator
 
-## Notifications (pending implementation)
+## Notifications (pending implementation — deferred)
 
 When an alert is created, notify via:
 - **Telegram**
 - **Email**
 - **In-app notification** (dashboard)
+
+> Implementation deferred pending client confirmation on preferred delivery method.
 
 ## Users and Access
 
@@ -68,6 +70,7 @@ When an alert is created, notify via:
 - Show open and resolved alerts
 - Allow operator to mark alerts as resolved with notes
 - Real-time updates (WebSocket or polling)
+- Alert history report with filtering by date range and station (`GET /reports/alerts` — backend implemented)
 - Built in React or Next.js
 
 ## Infrastructure
