@@ -7,7 +7,7 @@ to detect consecutive non-charging events.
 """
 
 from datetime import datetime, timezone
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import get_current_device
@@ -69,22 +69,10 @@ def ingest(
     """
     Receives a telemetry payload from a registered Arduino device.
 
-    Validates that the station_id in the payload matches a registered
-    device, persists the event, updates last_seen_at, and runs the
-    alert engine if the station reports not charging.
-
-    Raises 404 if the station_id is not registered in the devices table.
+    The device dependency has already verified that the API key belongs
+    to payload.station_id. Persists the event, updates last_seen_at, and
+    runs the alert engine if the station reports not charging.
     """
-    registered = db.query(models.Device).filter(
-        models.Device.station_id == payload.station_id
-    ).first()
-
-    if not registered:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Station {payload.station_id} is not registered",
-        )
-
     event = models.StationEvent(
         station_id=payload.station_id,
         is_charging=payload.is_charging,

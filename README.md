@@ -38,7 +38,7 @@ bike-stations/
 │       ├── stations.py  # GET /stations
 │       └── admin.py     # /admin/devices, /admin/users, /admin/cleanup
 ├── alembic/             # Database migrations
-├── tests/               # Integration test suite (46 tests)
+├── tests/               # Integration test suite (60 tests)
 ├── docs/                # Extended documentation
 ├── Dockerfile
 ├── docker-compose.yml   # Local development (app + postgres)

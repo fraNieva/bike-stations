@@ -6,7 +6,10 @@ and the core business rule — two consecutive non-charging events
 must generate an alert.
 """
 
+import bcrypt
 import pytest
+
+from app import models
 from tests.conftest import make_event
 
 
@@ -66,6 +69,22 @@ async def test_ingest_unknown_station(client, test_device, device_headers):
     payload = {**VALID_PAYLOAD, "station_id": "STN-999"}
     response = await client.post("/ingest", json=payload, headers=device_headers)
     assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_ingest_key_from_another_station_rejected(client, test_device, device_headers, db):
+    """A valid API key cannot be used to report telemetry for a different station."""
+    other = models.Device(
+        station_id="STN-043",
+        api_key_hash=bcrypt.hashpw(b"other-station-key", bcrypt.gensalt()).decode("utf-8"),
+        is_active=True,
+    )
+    db.add(other)
+    db.commit()
+
+    payload = {**VALID_PAYLOAD, "station_id": "STN-043"}
+    response = await client.post("/ingest", json=payload, headers=device_headers)
+    assert response.status_code == 401
 
 
 @pytest.mark.asyncio

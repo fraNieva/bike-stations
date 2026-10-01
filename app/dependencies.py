@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.security import decode_access_token, verify_password
 from app import models
+from app.schemas import IngestPayload
 
 bearer_scheme = HTTPBearer()
 api_key_header = APIKeyHeader(name="X-API-Key")
@@ -49,32 +50,41 @@ def get_current_user(
 
 
 def get_current_device(
+    payload: IngestPayload,
     api_key: str = Security(api_key_header),
     db: Session = Depends(get_db),
 ) -> models.Device:
     """
-    Validates the X-API-Key header and returns the authenticated device.
+    Validates the X-API-Key header against the device named in the payload.
 
-    Iterates active devices and verifies the key against stored bcrypt hashes.
-    Raises 401 if no matching key is found.
+    Looks up the single device registered for payload.station_id and verifies
+    the key against that device's bcrypt hash only. This binds each key to its
+    own station and keeps authentication cost constant as devices are added.
+
+    Raises 404 if the station_id is not registered.
+    Raises 401 if the key does not belong to that station.
     Raises 403 if the device is inactive.
     """
-    devices = db.query(models.Device).filter(models.Device.is_active == True).all()
+    device = db.query(models.Device).filter(
+        models.Device.station_id == payload.station_id
+    ).first()
 
-    for device in devices:
-        if verify_password(api_key, device.api_key_hash):
-            return device
+    if not device:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Station {payload.station_id} is not registered",
+        )
 
-    # Check if key exists but device is inactive
-    all_devices = db.query(models.Device).all()
-    for device in all_devices:
-        if verify_password(api_key, device.api_key_hash):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Device is inactive",
-            )
+    if not verify_password(api_key, device.api_key_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid API key",
+        )
 
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Invalid API key",
-    )
+    if not device.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Device is inactive",
+        )
+
+    return device

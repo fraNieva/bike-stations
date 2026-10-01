@@ -72,7 +72,10 @@ All fields except `station_id` and `is_charging` are optional.
 `alert_created: true` means two consecutive non-charging events were detected
 and a new alert was created.
 
-**Errors**: `401` missing/invalid API key, `403` inactive device, `404` unknown station_id.
+**Errors**: `401` invalid API key, or key does not belong to the given `station_id`; `403` missing API key or inactive device; `404` unknown station_id.
+
+The API key is verified only against the device registered for `station_id`, so each key
+can report telemetry for its own station only.
 
 ---
 
